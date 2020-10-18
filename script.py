@@ -7,10 +7,6 @@ import pdb
 
 class HighPointAxis:
 
-	color = None
-	offset = None
-	position = None
-
 	def __init__(self, position=None, offset=None, color=None):
 		self.color = color		
 		self.offset = offset
@@ -19,15 +15,12 @@ class HighPointAxis:
 
 class HighPoint:
 
-	row = None
-	column = None
-	column_name = None
-	axis_collection = []
-
 	def __init__(self, row=None, column=None, column_name=None):
 		self.row = row
 		self.column = column
 		self.column_name = column_name
+
+		self.axis_collection = []
 
 	def add_axis(self, position=None, offset=None, color=None):
 		axis = HighPointAxis(position, offset, color)
@@ -64,16 +57,15 @@ for index in range(0, len(data)):
 	column_number = next((__index for __index, _r in enumerate(headers) if _r == column_name), None)
 
 	h_point = HighPoint(index, column_number, column_name)
-	h_point.add_axis(1, 2, "green")
+	h_point.add_axis(0, 2, "green")
 	h_point.add_axis(3, 2, "yellow")
-	h_point.add_axis(5, 2, "red")
+	h_point.add_axis(6, 2, "red")
 
 	highlight_points.append(h_point)
 
-	break
-
 # real working
 for h_point in highlight_points:
+	print("Row: {0}".format(h_point.row))
 
 	relative_offset = 0
 	cell = data[h_point.row][h_point.column_name]
