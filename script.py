@@ -5,21 +5,34 @@ import csv
 import pdb
 
 
+class HighPointAxis:
+
+	color = None
+	offset = None
+	position = None
+
+	def __init__(self, position=None, offset=None, color=None):
+		self.color = color		
+		self.offset = offset
+		self.position = position
+
 
 class HighPoint:
 
-	column_name = None
 	row = None
-	position = None
-	offset = None
-	color = None
+	column = None
+	column_name = None
+	axis_collection = []
 
-	def __init__(self, column_name=None, row=None, position=None, offset=None, color=None):
-		self.column_name = column_name
+	def __init__(self, row=None, column=None, column_name=None):
 		self.row = row
-		self.position = position
-		self.offset = offset
-		self.color = color
+		self.column = column
+		self.column_name = column_name
+
+	def add_axis(self, position=None, offset=None, color=None):
+		axis = HighPointAxis(position, offset, color)
+		self.axis_collection.append(axis)
+
 
 
 csv_file_path = "example.csv"
@@ -43,28 +56,44 @@ for index, row in enumerate(csv.DictReader(open(csv_file_path))):
 
 # creating dummy data
 highlight_points = []
-for index in range(1, 999):
+for index in range(0, len(data)):
 
 	colors = ["red", "yellow", "green"]
 
 	column_name = "E Mail"
 	column_number = next((__index for __index, _r in enumerate(headers) if _r == column_name), None)
 
-	# h_point = HighPoint(column_number, index, random.choice(range(1, 10)), random.choice(range(1, 10)), random.choice(colors))
-	h_point = HighPoint(column_number, index, 1, 2, "green")
+	h_point = HighPoint(index, column_number, column_name)
+	h_point.add_axis(1, 2, "green")
+	h_point.add_axis(3, 2, "yellow")
+	h_point.add_axis(5, 2, "red")
+
 	highlight_points.append(h_point)
 
-	_color = workbook.add_format({'color': h_point.color})
+	break
 
-	try:
-		worksheet.write_rich_string(
-			"{0}{1}".format(chr(column_number + 65), index),
-			data[index][column_name][0:h_point.position],
-			_color, data[index][column_name][h_point.position:h_point.position + h_point.offset],
-			data[index][column_name][h_point.offset:]
-		)
-	except Exception as e:
-		pass
+# real working
+for h_point in highlight_points:
+
+	relative_offset = 0
+	cell = data[h_point.row][h_point.column_name]
+	formatted_collection = [cell]
+
+	for axis in h_point.axis_collection:
+		position = axis.position - relative_offset
+		cell = formatted_collection.pop()
+
+		formatted_collection += [
+			cell[:position],
+			workbook.add_format({'color': axis.color}),
+			cell[position:position + axis.offset],
+			cell[position + axis.offset:]
+		]
+
+		relative_offset = axis.position + axis.offset
+
+	formatted_collection = list(filter(None, formatted_collection))
+	worksheet.write_rich_string("{0}{1}".format(chr(h_point.column + 65), h_point.row + 2), *formatted_collection)
 
 workbook.close()
 
